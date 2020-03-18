@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
@@ -12,6 +12,7 @@ namespace PerformanceTest
     {
         public static void Main(string[] args)
         {
+            int calls = int.Parse(ConfigurationManager.AppSettings["publishCalls"]??"500");
             // 1. Create helper instance
             // 2. subscribe to channel
             // 3. Publish messages by providing number of calls
@@ -19,11 +20,16 @@ namespace PerformanceTest
             // 5. Print summary on console
 
             PubNubHelper helper = new PubNubHelper();
-            helper.Subscribe();     
-            helper.Publish(500);
+            Console.WriteLine("Pubnub instance created...");
 
+            helper.Subscribe();
+            Console.WriteLine("Subscribed to channel");
+            Console.WriteLine($"Making {calls} Publish calls..");
+            helper.Publish(calls);
+
+            Console.WriteLine("print summary");
             Log.PrintSummmary();
-
+            Console.WriteLine("Done with executions...\n Generating log files at executing exe path");
             Log.WritePublishLogsInFile();
             Log.WriteReceiveLogsInFile();
 
@@ -60,13 +66,14 @@ namespace PerformanceTest
 
         public void Publish(int number)
         {
+            int delay = int.Parse(ConfigurationManager.AppSettings["delay"] ?? "200");
             string channel = ConfigurationManager.AppSettings["channel"]??"testchannel";
             for (int i = 0; i < number; i++)
             {
                 string message = $"Message {i}";
                 PubNub.Publish().Channel(channel).Message(message).ExecuteAsync();
                 Log.PublishLog(message);
-                Thread.Sleep(200);  // 200ms delay
+                Thread.Sleep(delay);  // delay between calls
             }
         }
     }
@@ -137,12 +144,9 @@ namespace PerformanceTest
         {
             var firstPublish = DateTime.Parse(PublishLogs.FirstOrDefault().Key);
             var firstReceived = DateTime.Parse(ReceiveLogs.FirstOrDefault().Key);
-
             var lastReceived = DateTime.Parse(ReceiveLogs.LastOrDefault().Key);
-
             Console.WriteLine($"Total time between first publish and last msg receive event is {(lastReceived - firstPublish).TotalMilliseconds}ms");
-
-            Console.WriteLine($"\n Total time between first publish and first msg receive event is {(firstReceived-firstPublish).TotalMilliseconds}ms");
+            Console.WriteLine($"Total time between first publish and first msg receive event is {(firstReceived-firstPublish).TotalMilliseconds}ms");
 
         }
     }
