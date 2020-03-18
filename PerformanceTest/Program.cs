@@ -5,14 +5,15 @@ using System.IO;
 using System.Linq;
 using PubnubApi;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PerformanceTest
 {
     class MainClass
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            int calls = int.Parse(ConfigurationManager.AppSettings["publishCalls"]??"500");
+            int calls = int.Parse(ConfigurationManager.AppSettings["publishCalls"] ?? "500");
             // 1. Create helper instance
             // 2. subscribe to channel
             // 3. Publish messages by providing number of calls
@@ -25,7 +26,7 @@ namespace PerformanceTest
             helper.Subscribe();
             Console.WriteLine("Subscribed to channel");
             Console.WriteLine($"Making {calls} Publish calls..");
-            helper.Publish(calls);
+            await helper.Publish(calls);
 
             Console.WriteLine("print summary");
             Log.PrintSummmary();
@@ -46,7 +47,7 @@ namespace PerformanceTest
             PNConfiguration pnConfiguration = new PNConfiguration();
             pnConfiguration.SubscribeKey = ConfigurationManager.AppSettings["Subscribekey"];
             pnConfiguration.PublishKey = ConfigurationManager.AppSettings["Publishkey"];
-            pnConfiguration.Uuid = ConfigurationManager.AppSettings["uuid"]??"testUUID";
+            pnConfiguration.Uuid = ConfigurationManager.AppSettings["uuid"] ?? "testUUID";
             PubNub = new Pubnub(pnConfiguration);
 
             PNConfiguration pnConfiguration2 = new PNConfiguration();
@@ -57,21 +58,21 @@ namespace PerformanceTest
 
         public void Subscribe()
         {
-            string channel = ConfigurationManager.AppSettings["channel"]??"testchannel";
+            string channel = ConfigurationManager.AppSettings["channel"] ?? "testchannel";
             PubNub2.Subscribe<string>()
                 .Channels(new string[] { channel }).Execute();
 
             PubNub2.AddListener(new PnSubscribeCallback());
         }
 
-        public void Publish(int number)
+        public async Task Publish(int number)
         {
             int delay = int.Parse(ConfigurationManager.AppSettings["delay"] ?? "200");
-            string channel = ConfigurationManager.AppSettings["channel"]??"testchannel";
+            string channel = ConfigurationManager.AppSettings["channel"] ?? "testchannel";
             for (int i = 0; i < number; i++)
             {
                 string message = $"Message {i}";
-                PubNub.Publish().Channel(channel).Message(message).ExecuteAsync();
+                await PubNub.Publish().Channel(channel).Message(message).ExecuteAsync();
                 Log.PublishLog(message);
                 Thread.Sleep(delay);  // delay between calls
             }
@@ -146,7 +147,7 @@ namespace PerformanceTest
             var firstReceived = DateTime.Parse(ReceiveLogs.FirstOrDefault().Key);
             var lastReceived = DateTime.Parse(ReceiveLogs.LastOrDefault().Key);
             Console.WriteLine($"Total time between first publish and last msg receive event is {(lastReceived - firstPublish).TotalMilliseconds}ms");
-            Console.WriteLine($"Total time between first publish and first msg receive event is {(firstReceived-firstPublish).TotalMilliseconds}ms");
+            Console.WriteLine($"Total time between first publish and first msg receive event is {(firstReceived - firstPublish).TotalMilliseconds}ms");
 
         }
     }
@@ -170,17 +171,17 @@ namespace PerformanceTest
 
         public override void Presence(Pubnub pubnub, PNPresenceEventResult presence)
         {
- 
+
         }
 
         public override void Signal<T>(Pubnub pubnub, PNSignalResult<T> signal)
         {
- 
+
         }
 
         public override void Status(Pubnub pubnub, PNStatus status)
         {
-                
+
         }
     }
 }
