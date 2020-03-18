@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
 using System.Linq;
 using PubnubApi;
 using System.Threading;
@@ -102,7 +100,7 @@ namespace PerformanceTest
                     sw.WriteLine("\n\n\n");
                     var firstLog = ReceiveLogs.FirstOrDefault();
                     var lastLog = ReceiveLogs.LastOrDefault();
-                    var difference = (DateTime.Parse(lastLog.Key) - DateTime.Parse(firstLog.Key)).Milliseconds;
+                    var difference = (DateTime.Parse(lastLog.Key) - DateTime.Parse(firstLog.Key)).TotalMilliseconds;
                     sw.WriteLine($" First message received on {firstLog.Key}  \n Last message received on {lastLog.Key} \n\n  Time Elaspse {difference}ms");
                 }
             }
@@ -126,7 +124,7 @@ namespace PerformanceTest
                     sw.WriteLine("\n\n\n");
                     var firstLog = PublishLogs.FirstOrDefault();
                     var lastLog = PublishLogs.LastOrDefault();
-                    var difference = (DateTime.Parse(lastLog.Key) - DateTime.Parse(firstLog.Key)).Milliseconds;
+                    var difference = (DateTime.Parse(lastLog.Key) - DateTime.Parse(firstLog.Key)).TotalMilliseconds;
                     sw.WriteLine($" First message Publish on {firstLog.Key}  \n Last message published on {lastLog.Key} \n\n  Time Elaspse {difference}ms");
                 }
             }
@@ -140,13 +138,11 @@ namespace PerformanceTest
             var firstPublish = DateTime.Parse(PublishLogs.FirstOrDefault().Key);
             var firstReceived = DateTime.Parse(ReceiveLogs.FirstOrDefault().Key);
 
-            var lastPublish = DateTime.Parse(PublishLogs.LastOrDefault().Key);
             var lastReceived = DateTime.Parse(ReceiveLogs.LastOrDefault().Key);
 
-            Console.WriteLine($"Total time between first publish and last msg receive event is ${(lastReceived - firstPublish).Milliseconds}ms");
+            Console.WriteLine($"Total time between first publish and last msg receive event is {(lastReceived - firstPublish).TotalMilliseconds}ms");
 
-            Console.WriteLine($"\n Total time between first publish and first msg receive event is ${(firstReceived-firstPublish).Milliseconds}ms");
-            Console.WriteLine($" Total time between last publish and first msg receive event is ${(firstReceived - lastPublish).Milliseconds}ms");
+            Console.WriteLine($"\n Total time between first publish and first msg receive event is {(firstReceived-firstPublish).TotalMilliseconds}ms");
 
         }
     }
@@ -155,7 +151,7 @@ namespace PerformanceTest
     {
         public override void Message<T>(Pubnub pubnub, PNMessageResult<T> message)
         {
-            Log.ReceiveLog($"{message.Publisher}on:{message.Channel}:{message.Message}");
+            Log.ReceiveLog($"{message.Publisher} on {message.Channel} : {message.Message}");
         }
 
         public override void MessageAction(Pubnub pubnub, PNMessageActionEventResult messageAction)
